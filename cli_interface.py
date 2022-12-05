@@ -4,6 +4,7 @@ import json
 import time
 
 try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     while True:
         entradas = input().split()
         if (entradas[0] != "0") and (entradas[1] != "0") and (entradas[2] != "S"):
@@ -42,14 +43,11 @@ try:
                 "param2": param2,
                 "param3": param3
             }
-
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-                s.connect((roteador, porto))
-                s.send(json.dumps(msg))
+#            s.connect((roteador, int(porto)))
+            s.sendto(json.dumps(msg).encode(), 0, (roteador,int(porto)))
 
         else:
             time.sleep(int(entradas[4]))
-
 
 except KeyboardInterrupt:
     print("Caught keyboard interrupt, exiting")
