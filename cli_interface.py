@@ -44,8 +44,8 @@ try:
             }
 
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-                s.connect((roteador, porto))
-                s.send(json.dumps(msg))
+                s.connect((roteador.encode(), int(porto)))
+                s.send(json.dumps(msg).encode())
 
         else:
             time.sleep(int(entradas[4]))
