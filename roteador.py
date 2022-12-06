@@ -69,8 +69,7 @@ def enviar_atualizacao():
     for i in mapa:
         msg[str(count)] = [i.get_enlace()[0], i.get_enlace()[1], i.get_enlace()[2], i.get_dist(), i.get_next()]
         count += 1
-    count += 1
-    msg["tam"] = count
+    msg["tam"] = len(mapa)
     for i in mapa:
         if i.get_dist() == 1:
             h = i.get_enlace()[1]
