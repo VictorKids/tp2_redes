@@ -52,12 +52,12 @@ def seguir_msg_adiante(text, origin, name, destin, next):
         if i.get_enlace()[0] == next:
             h = i.get_enlace()[1]
             p = i.get_enlace()[2]
-        try:
-            s.sendto(json.dumps(msg).encode('utf-8'), 0, (h, int(p)))
-            break
-        except:
-            i.set_dist(16)
-            break
+            try:
+                s.sendto(json.dumps(msg).encode('utf-8'), 0, (h, int(p)))
+                break
+            except:
+                i.set_dist(16)
+                break
 
 def enviar_atualizacao():
     nome = mapa[0].get_enlace()[0]
@@ -84,6 +84,7 @@ def enviar_atualizacao():
 # Funções que lidam com cada comando da interface
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
 def conectar(ip, port, name):
+    global flag
     flag = True
     mapa.append(Router(name,ip, port, 1, name)) 
 
@@ -94,6 +95,7 @@ def desconectar(ip, port):
             break
 
 def rodar_alg():
+    global flag
     flag = True
     while True:
         t = threading.Timer(1.0, enviar_atualizacao)
@@ -113,12 +115,12 @@ def repassar_msg(text, destino):
     for i in mapa:
         if i.get_enlace()[0] == destino:
             # caso onde sabe-se a existencia de 'destin'
-            print("E" + text + "de" + r_atual + "para" + destino + "\n")
+            print("E" + text + " de " + r_atual + " para " + destino + "\n")
             print("\n")
             seguir_msg_adiante(text, r_atual, r_atual, destino, i.get_next())
             return
     # caso onde não se sabe da existencia de 'destin'
-    print("X" + text + "de" + r_atual + "para" + destino + "\n")
+    print("X" + text + " de " + r_atual + " para " + destino + "\n")
     print("\n") 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -139,7 +141,7 @@ def receber_msgs_interface(msg):
     elif ident == "E":
         repassar_msg(msg["param1"], msg["param2"])
 
-def receber_msgs_roteadores(msg, addr):                                                  
+def receber_msgs_roteadores(msg, addr): 
     r_name  = msg["name"]
     r_atual = mapa[0].get_enlace()[0]
     isIn    = False
@@ -168,20 +170,20 @@ def receber_msgs_roteadores(msg, addr):
     elif int(msg["id"]) == 9999:
         # a msg é pra mim
         if msg["destin"] == r_atual:
-            print("R" + msg["text"] + "de" + msg["origin"] + "para" + msg["destin"] + "\n")
+            print("R" + msg["text"] + " de " + msg["origin"] + " para " + msg["destin"] + "\n")
             print("\n")
         else:
             isIn2 = False
             for i in mapa:
                 # a msg n é pra mim mas conheço o alvo
                 if i.get_enlace()[0] == msg["destin"]:
-                    print("E" + msg["text"] + "de" + msg["origin"] + "para" +  msg["destin"] + "através de" + i.get_next() + "\n")
+                    print("E" + msg["text"] + " de " + msg["origin"] + " para " +  msg["destin"] + " através de " + i.get_next() + "\n")
                     isIn2 = True
                     seguir_msg_adiante(msg["text"], msg["origin"], r_atual, msg["destin"], i.get_next())
                     break
             # a msg não é pra mim e não sei pra quem é
             if isIn2 == False:
-                print("X" + msg["text"] + "de" + msg["origin"] + "para" +  msg["destin"] + "\n")
+                print("X" + msg["text"] + " de " + msg["origin"] + " para " +  msg["destin"] + "\n")
                 print("\n")  
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
