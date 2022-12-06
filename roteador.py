@@ -193,10 +193,14 @@ def receber_msgs_roteadores(msg, addr):
 HOST = sys.argv[1]
 PORT = int(sys.argv[2])
 
-mapa.append(Router(HOST,"127.0.0.1", PORT, 0, HOST)) 
-
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind(("127.0.0.1", PORT))
+hostname=socket.gethostname()   
+IPAddr=socket.gethostbyname(hostname)
+print(IPAddr)
+
+mapa.append(Router(HOST,IPAddr, PORT, 0, HOST)) 
+
+s.bind((IPAddr, PORT))
 
 try:
     while not(finish):
