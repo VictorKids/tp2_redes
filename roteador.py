@@ -30,6 +30,37 @@ class Router:
     def set_next(self, next):
         self.next = next
 
+class DistanceVector:
+
+    def __init__(self,routerList):
+        self.table = {}
+        for router in routerList:
+            self.table[router] = (router.next,router.dist)
+        self.origin = routerList[0]
+
+    def update(self, other):
+        self.table[other.origin] = (other.origin,1)
+        for key in other.table.keys():
+            if key in self.table.keys():
+                if self.table[key][1] > other.table[key][1]+1:
+                     self.table[key] = (other.origin,other.table[key][1]+1)
+            else:
+                self.table[key] = (other.origin,other.table[key][1]+1)
+
+    def toRouterList(self):
+        routerList = []
+        routerList.append(self.origin) #adiciona primeiro elemento da lista
+        del self.table[self.origin]
+        for router in self.table.keys():
+            router.next = self.table[router][0]
+            router.dist = self.table[router][1]
+            routerList.append(router)
+        return routerList
+
+    def appendRouter(self,newRouter):
+        router = DistanceVector([newRouter])
+        self.update(router)
+
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Variaveis globais importantes
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -133,6 +164,9 @@ def receber_msgs_roteadores(msg, addr):                                         
 
     # msgs do protocolo de vetor de dist.
     if int(msg["id"]) == 11111: # FALTA ISSO AQ!!!!
+#       distVec = DistanceVector(mapa)
+#       distVec.appendRouter(DistanceVector(mapa_recebido))
+#       mapa = distVec.toRouterList()
         pass
 
     # msgs de encaminhamento de msgs
