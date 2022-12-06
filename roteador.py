@@ -35,7 +35,7 @@ class Router:
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
 mapa = []
 flag = False
-
+finish = False
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Funções que lidam com cada ação entre roteadores
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -102,6 +102,8 @@ def rodar_alg():
         t.start()
 
 def finalizar():
+    global finish
+    finish = True
     sys.exit()
 
 def print_tabela():
@@ -115,12 +117,12 @@ def repassar_msg(text, destino):
     for i in mapa:
         if i.get_enlace()[0] == destino:
             # caso onde sabe-se a existencia de 'destin'
-            print("E" + text + " de " + r_atual + " para " + destino + "\n")
+            print("E " + text + " de " + r_atual + " para " + destino + "\n")
             print("\n")
             seguir_msg_adiante(text, r_atual, r_atual, destino, i.get_next())
             return
     # caso onde não se sabe da existencia de 'destin'
-    print("X" + text + " de " + r_atual + " para " + destino + "\n")
+    print("X " + text + " de " + r_atual + " para " + destino + "\n")
     print("\n") 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -170,20 +172,20 @@ def receber_msgs_roteadores(msg, addr):
     elif int(msg["id"]) == 9999:
         # a msg é pra mim
         if msg["destin"] == r_atual:
-            print("R" + msg["text"] + " de " + msg["origin"] + " para " + msg["destin"] + "\n")
+            print("R " + msg["text"] + " de " + msg["origin"] + " para " + msg["destin"] + "\n")
             print("\n")
         else:
             isIn2 = False
             for i in mapa:
                 # a msg n é pra mim mas conheço o alvo
                 if i.get_enlace()[0] == msg["destin"]:
-                    print("E" + msg["text"] + " de " + msg["origin"] + " para " +  msg["destin"] + " através de " + i.get_next() + "\n")
+                    print("E " + msg["text"] + " de " + msg["origin"] + " para " +  msg["destin"] + " através de " + i.get_next() + "\n")
                     isIn2 = True
                     seguir_msg_adiante(msg["text"], msg["origin"], r_atual, msg["destin"], i.get_next())
                     break
             # a msg não é pra mim e não sei pra quem é
             if isIn2 == False:
-                print("X" + msg["text"] + " de " + msg["origin"] + " para " +  msg["destin"] + "\n")
+                print("X " + msg["text"] + " de " + msg["origin"] + " para " +  msg["destin"] + "\n")
                 print("\n")  
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -198,7 +200,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.bind(("127.0.0.1", PORT))
 
 try:
-    while True:
+    while not(finish):
         msg, addr = s.recvfrom(1024)
         msg = json.loads(msg.decode('utf-8'))
         if int(msg["id"]) < 7:
