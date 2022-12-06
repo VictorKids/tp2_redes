@@ -196,7 +196,6 @@ PORT = int(sys.argv[2])
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 hostname=socket.gethostname()   
 IPAddr=socket.gethostbyname(hostname)
-print(IPAddr)
 
 mapa.append(Router(HOST,IPAddr, PORT, 0, HOST)) 
 
