@@ -44,7 +44,7 @@ try:
                 "param3": param3
             }
 #            s.connect((roteador, int(porto)))
-            s.sendto(json.dumps(msg).encode(), 0, (roteador,int(porto)))
+            s.sendto(json.dumps(msg).encode('utf-8'), 0, (roteador,int(porto)))
 
         else:
             time.sleep(int(entradas[4]))

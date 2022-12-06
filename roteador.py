@@ -40,47 +40,67 @@ flag = False
 # Funções que lidam com cada ação entre roteadores
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
 def seguir_msg_adiante(text, origin, name, destin, next):
-    try:
-        msg = {
-            "id": 9999,
-            "name": name,
-            "text": text,
-            "origin": origin,
-            "destin": destin,
-            "next": next
-        }
-        for i in mapa:
-            if i.get_enlace()[0] == next:
-                h = i.get_enlace()[1]
-                p = i.get_enlace()[2]
-            s.sendto(json.dumps(msg).encode(), 0, (h, int(p)))
-    except:
-        return
+    msg = {
+        "id": 9999,
+        "name": name,
+        "text": text,
+        "origin": origin,
+        "destin": destin,
+        "next": next
+    }
+    for i in mapa:
+        if i.get_enlace()[0] == next:
+            h = i.get_enlace()[1]
+            p = i.get_enlace()[2]
+        try:
+            s.sendto(json.dumps(msg).encode('utf-8'), 0, (h, int(p)))
+            break
+        except:
+            i.set_dist(16)
+            break
 
 def enviar_atualizacao():
-    pass
-
-def enviar_msg():
-    pass
+    nome = mapa[0].get_enlace()[0]
+    msg = {
+        "id": 11111,
+        "name": nome
+    }
+    count = 0
+    for i in mapa:
+        msg[str(count)] = [i.get_enlace()[0], i.get_enlace()[1], i.get_enlace()[2], i.get_dist(), i.get_next()]
+        count += 1
+    count += 1
+    msg["tam"] = count
+    for i in mapa:
+        if i.get_dist() == 1:
+            h = i.get_enlace()[1]
+            p = int(i.get_enlace()[2])
+            try:
+                s.sendto(json.dumps(msg).encode('utf-8'), 0, (h,p))
+            except:
+                i.set_dist(16)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Funções que lidam com cada comando da interface
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++
 def conectar(ip, port, name):
-    mapa.append(Router(name,ip, port, 1, name)) 
     flag = True
+    mapa.append(Router(name,ip, port, 1, name)) 
 
 def desconectar(ip, port):
     for i in mapa:
         if i.get_enlace()[1] == ip and i.get_enlace()[2] == port:
-            mapa.pop(i)
+            i.set_dist(16)
             break
 
 def rodar_alg():
-    pass
+    flag = True
+    while True:
+        t = threading.Timer(1.0, enviar_atualizacao)
+        t.start()
 
 def finalizar():
-    pass
+    sys.exit()
 
 def print_tabela():
     print(str(mapa[0].get_enlace()[0]) + "\n")
@@ -119,8 +139,7 @@ def receber_msgs_interface(msg):
     elif ident == "E":
         repassar_msg(msg["param1"], msg["param2"])
 
- 
-def receber_msgs_roteadores(msg, addr):                                                  ##### NÃO TERMINEI
+def receber_msgs_roteadores(msg, addr):                                                  
     r_name  = msg["name"]
     r_atual = mapa[0].get_enlace()[0]
     isIn    = False
@@ -132,8 +151,18 @@ def receber_msgs_roteadores(msg, addr):                                         
         mapa.append(Router(r_name,addr[0], addr[1], 1, r_name))
 
     # msgs do protocolo de vetor de dist.
-    if int(msg["id"]) == 11111: # FALTA ISSO AQ!!!!
-        pass
+    if int(msg["id"]) == 11111:
+        for num in range(int(msg["tam"])):
+            isIn3 = False 
+            for i in mapa:
+                if msg[str(num)][0] == i.get_enlace()[0]: # se for o mesmo nome
+                    if msg[str(num)][3]+1 < i.get_dist(): # se a dist nova for vantajosa
+                        i.set_dist(msg[str(num)][3]+1)
+                        i.set_next(r_name)
+                    isIn3 = True
+                    break
+            if isIn3 == False:
+                mapa.append(Router(msg[str(num)][0], msg[str(num)][1], msg[str(num)][2], msg[str(num)][3]+1, r_name)) 
 
     # msgs de encaminhamento de msgs
     elif int(msg["id"]) == 9999:
@@ -164,11 +193,12 @@ PORT = int(sys.argv[2])
 mapa.append(Router(HOST,"127.0.0.1", PORT, 0, HOST)) 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind((HOST, PORT))
+s.bind(("127.0.0.1", PORT))
 
 try:
     while True:
-        msg, addr = json.loads(s.recvfrom(1024).decode('utf-8'))
+        msg, addr = s.recvfrom(1024)
+        msg = json.loads(msg.decode('utf-8'))
         if int(msg["id"]) < 7:
             t0 = threading.Thread(target = receber_msgs_interface, args=[msg])
             t0.daemon = True
@@ -178,4 +208,4 @@ try:
             t1.daemon = True
             t1.start()      
 except:
-    pass   
+    print("Error in main loop")   
